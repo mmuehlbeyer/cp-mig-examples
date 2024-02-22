@@ -78,4 +78,4 @@ curl http://localhost:8081/subjects/product-value/versions/1 | jq
 DC2
 ```bash
 curl http://localhost:8082/subjects/product-value/versions/1 | jq    
-``
+```
