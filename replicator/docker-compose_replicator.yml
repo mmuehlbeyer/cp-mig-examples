@@ -1,0 +1,13 @@
+---
+version: '3'
+services:
+  replicator-dc1:
+    image: confluentinc/cp-enterprise-replicator-executable:${CP_VERSION}
+    hostname: replicator-dc1
+    container_name: replicator-dc1    
+    volumes:
+        - ./dc1/consumer-dc1.properties:/etc/replicator/consumer.properties
+        - ./dc1/producer-dc1.properties:/etc/replicator/producer.properties
+        - ./dc1/replication-dc1.properties:/etc/replicator/replication.properties
+    environment:
+      WHITELIST: demo

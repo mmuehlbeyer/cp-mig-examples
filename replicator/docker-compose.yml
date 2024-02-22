@@ -1,0 +1,193 @@
+---
+version: '3'
+services:
+### the dc1 part###
+  controller-dc1:
+    image: confluentinc/cp-server:${CP_VERSION}
+    hostname: controller-dc1
+    container_name: controller-dc1
+    ports:
+      - "9093:9093"
+      - "9103:9103"
+    environment:
+      KAFKA_NODE_ID: 1000
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9103
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_PROCESS_ROLES: 'controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1000@controller-dc1:9093'
+      KAFKA_LISTENERS: 'CONTROLLER://controller-dc1:9093'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LOG_DIRS: '/tmp/kraft-controller-logs'
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry-dc1:8081
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker-dc1:29092
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'true'
+      # Replace CLUSTER_ID with a unique base64 UUID using "bin/kafka-storage.sh random-uuid"
+      # See https://docs.confluent.io/kafka/operations-tools/kafka-tools.html#kafka-storage-sh
+      CLUSTER_ID: 'BdOioN77RLeuQKdR_ebvNA'
+
+  broker-dc1:
+    image: confluentinc/cp-server:${CP_VERSION}
+    hostname: broker-dc1
+    container_name: broker-dc1
+    depends_on:
+      - controller-dc1
+    ports:
+      - "9092:9092"
+      - "9102:9102"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker-dc1:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9102
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1000@controller-dc1:9093'
+      KAFKA_LISTENERS: 'PLAINTEXT://broker-dc1:29092,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry-dc1:8081
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker-dc1:29092
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'true'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      KAFKA_CLUSTER_LINK_METADATA_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_CLUSTER_LINK_METADATA_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_DURABILITY_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_TIER_METADATA_REPLICATION_FACTOR: 1
+      #enable cluster link
+      KAFKA_CONFLUENT_CLUSTER_LINK_ENABLE: true
+      # Replace CLUSTER_ID with a unique base64 UUID using "bin/kafka-storage.sh random-uuid" 
+      # See https://docs.confluent.io/kafka/operations-tools/kafka-tools.html#kafka-storage-sh
+      CLUSTER_ID: 'BdOioN77RLeuQKdR_ebvNA'
+  schema-registry-dc1:
+    image: confluentinc/cp-schema-registry:${CP_VERSION}
+    container_name: schema-registry-dc1
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry-dc1
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: broker-dc1:29092
+    depends_on:
+      - broker-dc1
+#### the dc2 part###
+  controller-dc2:
+    image: confluentinc/cp-server:${CP_VERSION}
+    hostname: controller-dc2
+    container_name: controller-dc2
+    ports:
+      - "9095:9095"
+      - "9105:9105"
+    environment:
+      KAFKA_NODE_ID: 2000
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9105
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_PROCESS_ROLES: 'controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '2000@controller-dc2:9093'
+      KAFKA_LISTENERS: 'CONTROLLER://controller-dc2:9093'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LOG_DIRS: '/tmp/kraft-controller-logs'
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry-dc2:8081
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker-dc2:29096
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'true'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      # Replace CLUSTER_ID with a unique base64 UUID using "bin/kafka-storage.sh random-uuid"
+      # See https://docs.confluent.io/kafka/operations-tools/kafka-tools.html#kafka-storage-sh
+      CLUSTER_ID: 'J0cmgUgrQlSGqfIgSGA8hg'
+
+  broker-dc2:
+    image: confluentinc/cp-server:${CP_VERSION}
+    hostname: broker-dc2
+    container_name: broker-dc2
+    depends_on:
+      - controller-dc2
+    ports:
+      - "9096:9096"
+      - "9106:9106"
+    environment:
+      KAFKA_NODE_ID: 2
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker-dc2:29096,PLAINTEXT_HOST://localhost:9096'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9106
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_PROCESS_ROLES: 'broker'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '2000@controller-dc2:9093'
+      KAFKA_LISTENERS: 'PLAINTEXT://broker-dc2:29096,PLAINTEXT_HOST://0.0.0.0:9096'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry-dc2:8082
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker-dc2:29096
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'true'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      KAFKA_CLUSTER_LINK_METADATA_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_CLUSTER_LINK_METADATA_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_DURABILITY_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_TIER_METADATA_REPLICATION_FACTOR: 1
+      #enable cluster link
+      KAFKA_CONFLUENT_CLUSTER_LINK_ENABLE: true
+      # Replace CLUSTER_ID with a unique base64 UUID using "bin/kafka-storage.sh random-uuid" 
+      # See https://docs.confluent.io/kafka/operations-tools/kafka-tools.html#kafka-storage-sh
+      CLUSTER_ID: 'J0cmgUgrQlSGqfIgSGA8hg'      
+  schema-registry-dc2:
+    image: confluentinc/cp-schema-registry:${CP_VERSION}
+    container_name: schema-registry-dc2
+    ports:
+      - "8082:8082"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry-dc2
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: broker-dc2:29096
+    depends_on:
+      - broker-dc2   
+### central control center            
+  control-center:
+    image: confluentinc/cp-enterprise-control-center:${CP_VERSION}
+    hostname: control-center
+    container_name: control-center
+    depends_on:
+      - broker-dc1
+      - broker-dc2
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_KAFKA_dc2_BOOTSTRAP_SERVERS: 'broker-dc2:29096'
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker-dc1:29092'
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry-dc1:8081"
+      CONTROL_CENTER_SCHEMA_REGISTRY_SR-dc2_URL: "http://schema-registry-dc2:8082"
+      CONTROL_CENTER_CONNECT_DC1_CLUSTER: "http://replicator-dc1:18083"
+      PORT: 9021       
