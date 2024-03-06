@@ -34,8 +34,9 @@ out put should be like
 
 ### create SR config file on dc1-sr
 
- docker exec schema-registry-dc1 bash -c '\echo "schema.registry.url=http://schema-registry-dc2:8081" > /home/appuser/config.txt'
-
+ ```
+docker exec schema-registry-dc1 bash -c '\echo "schema.registry.url=http://schema-registry-dc2:8081" > /home/appuser/config.txt'
+```
 
 ### create the exporter
 
